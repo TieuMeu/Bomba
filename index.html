@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Chiến Đấu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #e2e8f0; /* Light text color */
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column; 
+            gap: 25px;
+            align-items: center; 
+            width: 100%;
+            max-width: 500px; /* Max-width for game container */
+            margin: 0 auto; /* Center horizontally */
+        }
+
+        .game-container {
+            background-color: #2d3748; /* Slightly lighter dark background for container */
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 100%;
+            border: 2px solid #4a5568;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Adjusted gap */
+            position: relative; /* Needed for history button positioning */
+        }
+
+        #historyButton, #rulesButton {
+            position: absolute;
+            top: 15px;
+            background-color: rgba(74, 85, 104, 0.8);
+            color: #e2e8f0;
+            border: 1px solid #718096;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        #historyButton { left: 15px; }
+        #rulesButton { right: 15px; }
+
+        #historyButton:hover, #rulesButton:hover {
+            background-color: #4a5568;
+            transform: scale(1.1);
+        }
+
+        h1 {
+            color: #f7fafc; /* White title */
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            margin-top: 20px; /* Add margin to avoid overlap with buttons */
+        }
+
+        .status-section {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch; /* Make cards equal height */
+            gap: 15px;
+            flex-wrap: wrap; 
+        }
+        
+        .round-counter {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #a0aec0;
+            font-weight: bold;
+        }
+
+        .round-number {
+            font-size: 1.5rem;
+            color: #f7fafc;
+        }
+
+
+        .player-stats, .monster-stats {
+            background-color: #4a5568;
+            padding: 15px;
+            border-radius: 15px;
+            flex: 1;
+            min-width: 180px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 1px solid #718096;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .avatar-image {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+            object-fit: contain; /* Use contain to avoid stretching */
+        }
+
+        .player-stats h2, .monster-stats h2 {
+            font-size: 1.5rem;
+            color: #a0aec0;
+            margin-bottom: 10px;
+        }
+        
+        .stats-bars {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1; /* Allow this to grow */
+            justify-content: flex-start; 
+        }
+
+        .health-bar-container, .power-bar-container, .shield-bar-container {
+            background-color: #a0aec0;
+            border-radius: 5px;
+            height: 15px;
+            width: 100%;
+            margin-top: 5px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .health-bar {
+            height: 100%;
+            background-color: #48bb78; /* Green for health */
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .power-bar {
+            height: 100%;
+            background-color: #f6ad55; /* Orange for power */
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .shield-bar {
+            height: 100%;
+            background-color: #63b3ed; /* Blue for shield */
+            border-radius: 5px;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        /* Status Effects Icons */
+        .status-effects-container {
+            display: flex;
+            justify-content: flex-start; /* Align to the left */
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px; /* Reduced margin */
+            min-height: 22px; /* Prevent layout shift */
+        }
+        
+        .status-effect-icon {
+            font-size: 1.1rem; /* Smaller icon */
+            position: relative;
+            cursor: help;
+        }
+
+        .status-effect-icon .duration {
+            position: absolute;
+            bottom: -4px; /* Adjusted position */
+            right: -6px;  /* Adjusted position */
+            background-color: rgba(229, 62, 62, 0.9); /* Red background for duration */
+            color: white;
+            border-radius: 50%;
+            width: 14px;  /* Smaller size */
+            height: 14px; /* Smaller size */
+            font-size: 0.6rem; /* Smaller font */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            border: 1px solid white;
+        }
+
+
+        .message-box {
+            background-color: #2c5282; /* Dark blue for messages */
+            padding: 15px;
+            border-radius: 15px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border: 1px solid #4299e1;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .action-button {
+            background-color: #667eea; /* Indigo button */
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            font-weight: bold;
+            display: flex; /* Enable flexbox for icon and text */
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between icon and text */
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-button:hover {
+            background-color: #5a67d8; /* Darker indigo on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        #restartButton {
+            background-color: #e53e3e; /* Red restart button */
+            margin-top: 20px;
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 5px 15px rgba(229, 62, 62, 0.4);
+            font-weight: bold;
+        }
+
+        #restartButton:hover {
+            background-color: #c53030;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(229, 62, 62, 0.6);
+        }
+
+        #restartButton:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(229, 62, 62, 0.4);
+        }
+
+        /* Disabled state for buttons */
+        .action-button:disabled, #restartButton:disabled, .power-skill-button:disabled {
+            background-color: #718096; /* Gray out when disabled */
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Modals (Shop & History) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+
+        .modal-content {
+            background-color: #2d3748;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 2px solid #4a5568;
+            color: #e2e8f0;
+        }
+
+        .modal-content p {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-button {
+            background-color: #f6ad55; /* Orange for skill button */
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 10px rgba(246, 173, 85, 0.4);
+            font-weight: bold;
+            display: flex; /* Enable flexbox for icon and text */
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between icon and text */
+        }
+        .modal-button:hover {
+            background-color: #ed8936;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(246, 173, 85, 0.6);
+        }
+        .modal-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(246, 173, 85, 0.4);
+        }
+        .modal-button.gray-button {
+            background-color: #667eea; /* Indigo for exit button */
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .modal-button.gray-button:hover {
+            background-color: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+        .modal-button.gray-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+        }
+
+        /* History Modal Specific Styles */
+        #historyLogList {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        #historyLogList li {
+            background-color: #4a5568;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #63b3ed;
+        }
+        
+        /* Rules Modal Specific Styles */
+        #gameRules {
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px; /* space for scrollbar */
+        }
+        #gameRules h2, #gameRules h3 {
+            color: #a0aec0;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        #gameRules h2 {
+            font-size: 1.8rem;
+            color: #f7fafc;
+            border-bottom: 1px solid #4a5568;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        #gameRules h3 {
+            font-size: 1.4rem;
+            color: #cbd5e0;
+            margin-top: 15px;
+        }
+        #gameRules p, #gameRules ul {
+            font-size: 0.95rem;
+            color: #cbd5e0;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        #gameRules ul {
+            list-style-type: disc;
+            margin-left: 20px;
+            margin-top: 5px;
+        }
+        #gameRules li {
+            margin-bottom: 5px;
+        }
+        #gameRules strong {
+            color: #f7fafc;
+        }
+
+        /* Special Skill Activate Button */
+        #activateSpecialSkillButton {
+            background-color: #f6ad55; /* Orange */
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 15px rgba(246, 173, 85, 0.4);
+            font-weight: bold;
+            display: none; /* Hidden by default */
+            width: 100%;
+            margin-bottom: 20px; /* Space between this and action buttons */
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #activateSpecialSkillButton:hover {
+            background-color: #ed8936;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(246, 173, 85, 0.6);
+        }
+        #activateSpecialSkillButton:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(246, 173, 85, 0.4);
+        }
+
+        /* Special Mode Button Styling */
+        @keyframes fire-flicker {
+            0% { box-shadow: 0 0 5px #fef08a, 0 0 10px #fef08a, 0 0 15px #fde047, 0 0 20px #facc15, 0 0 25px #eab308, 0 0 30px #ca8a04, 0 0 35px #a16207; }
+            50% { box-shadow: 0 0 10px #fef08a, 0 0 20px #fef08a, 0 0 30px #fde047, 0 0 40px #facc15, 0 0 50px #eab308, 0 0 60px #ca8a04, 0 0 70px #a16207; }
+            100% { box-shadow: 0 0 5px #fef08a, 0 0 10px #fef08a, 0 0 15px #fde047, 0 0 20px #facc15, 0 0 25px #eab308, 0 0 30px #ca8a04, 0 0 35px #a16207; }
+        }
+        .action-button.special-mode {
+            background-color: #f6ad55; /* Orange */
+            animation: fire-flicker 2s ease-in-out infinite;
+        }
+        .action-button.special-mode:hover {
+            background-color: #ed8936;
+        }
+        .action-button.special-mode:active {
+            background-color: #dd6b20;
+        }
+
+        /* Tutorial Styles */
+        #tutorialOverlay {
+            position: fixed; /* Changed to fixed */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            display: none; /* Hidden by default */
+        }
+        .spotlight {
+            position: absolute;
+            border-radius: 4px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+            z-index: 2001;
+            transition: all 0.3s ease-in-out;
+        }
+        #tutorialBox {
+            position: absolute;
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #4a5568;
+            max-width: 300px;
+            z-index: 2002;
+            transition: all 0.3s ease-in-out;
+        }
+        #tutorialText {
+            margin-bottom: 15px;
+        }
+        #tutorialSkipButton {
+            background-color: #e53e3e;
+            margin-top: 10px;
+        }
+
+        /* Welcome Animation */
+        @keyframes hero-jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+        .jumping-hero {
+            animation: hero-jump 0.8s ease-in-out infinite;
+        }
+
+        /* Attack Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes flash {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(2); }
+        }
+        .flash {
+            animation: flash 0.3s ease-in-out;
+        }
+        
+        .animation-clone {
+            position: fixed; /* Use fixed positioning for the clone */
+            pointer-events: none;
+            z-index: 100;
+            transition: all 0.5s ease-in-out;
+        }
+        
+        /* ====== HIỆU ỨNG BONG BÓNG RIÊNG CHO TỪNG NÚT (ĐÃ CẬP NHẬT MÀU) ====== */
+
+        /* --- Cấu trúc chung cho tất cả hiệu ứng --- */
+        .bubble-effect-base::before, .bubble-effect-base::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            transform: translateX(-50%);
+            width: 150%;
+            height: 100%;
+            background-repeat: no-repeat;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* --- 1. Hiệu ứng cho nút TẤN CÔNG (Màu Đỏ) --- */
+        .bubble-effect-attack::before {
+    top: -100%;
+    left: 65%;
+    width: 150%;
+    height: 150%;
+    background-image: 
+        /* Cụm 1 */
+        linear-gradient(to top, transparent 45%, #e53e3e 45%, #e53e3e 55%, transparent 55%), linear-gradient(to left, transparent 45%, #e53e3e 45%, #e53e3e 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #e53e3e 47%, #e53e3e 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #e53e3e 47%, #e53e3e 53%, transparent 53%),
+        /* Cụm 2 */
+        linear-gradient(to top, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%),
+        /* Cụm 3 */
+        linear-gradient(to top, transparent 45%, #cd0000 45%, #cd0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #cd0000 45%, #cd0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #cd0000 47%, #cd0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #cd0000 47%, #cd0000 53%, transparent 53%),
+        /* Cụm 4 */
+        linear-gradient(to top, transparent 45%, #e53e3e 45%, #e53e3e 55%, transparent 55%), linear-gradient(to left, transparent 45%, #e53e3e 45%, #e53e3e 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #e53e3e 47%, #e53e3e 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #e53e3e 47%, #e53e3e 53%, transparent 53%),
+        /* Cụm 5 */
+        linear-gradient(to top, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%),
+        /* Cụm 6 */
+        linear-gradient(to top, transparent 45%, #cd0000 45%, #cd0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #cd0000 45%, #cd0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #cd0000 47%, #cd0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #cd0000 47%, #cd0000 53%, transparent 53%);
+        
+    background-size: 15px 15px, 15px 15px, 15px 15px, 15px 15px, 20px 20px, 20px 20px, 20px 20px, 20px 20px, 12px 12px, 12px 12px, 12px 12px, 12px 12px, 18px 18px, 18px 18px, 18px 18px, 18px 18px, 22px 22px, 22px 22px, 22px 22px, 22px 22px, 10px 10px, 10px 10px, 10px 10px, 10px 10px;
+                     
+    background-position: 5% 90%, 5% 90%, 5% 90%, 5% 90%, 20% 70%, 20% 70%, 20% 70%, 20% 70%, 40% 85%, 40% 85%, 40% 85%, 40% 85%, 60% 65%, 60% 65%, 60% 65%, 60% 65%, 80% 90%, 80% 90%, 80% 90%, 80% 90%, 95% 75%, 95% 75%, 95% 75%, 95% 75%;
+                         
+    animation: topbubbles 2.5s linear forwards;
+    filter: drop-shadow(0 0 3px #ff0000);
+}
+
+.bubble-effect-attack::after {
+    bottom: -100%;
+    left: 65%;
+    width: 150%;
+    height: 150%;
+    background-image: 
+        /* Cụm 1 */
+        linear-gradient(to top, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%),
+        /* Cụm 2 */
+        linear-gradient(to top, transparent 45%, #e53e3e 45%, #e53e3e 55%, transparent 55%), linear-gradient(to left, transparent 45%, #e53e3e 45%, #e53e3e 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #e53e3e 47%, #e53e3e 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #e53e3e 47%, #e53e3e 53%, transparent 53%),
+        /* Cụm 3 */
+        linear-gradient(to top, transparent 45%, #cd0000 45%, #cd0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #cd0000 45%, #cd0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #cd0000 47%, #cd0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #cd0000 47%, #cd0000 53%, transparent 53%),
+        /* Cụm 4 */
+        linear-gradient(to top, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(to left, transparent 45%, #ff0000 45%, #ff0000 55%, transparent 55%), linear-gradient(45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%), linear-gradient(-45deg, transparent 47%, #ff0000 47%, #ff0000 53%, transparent 53%);
+
+    background-size: 18px 18px, 18px 18px, 18px 18px, 18px 18px, 15px 15px, 15px 15px, 15px 15px, 15px 15px, 22px 22px, 22px 22px, 22px 22px, 22px 22px, 10px 10px, 10px 10px, 10px 10px, 10px 10px;
+    
+    background-position: 10% 20%, 10% 20%, 10% 20%, 10% 20%, 35% 5%, 35% 5%, 35% 5%, 35% 5%, 60% 18%, 60% 18%, 60% 18%, 60% 18%, 90% 10%, 90% 10%, 90% 10%, 90% 10%;
+    
+    animation: bottombubbles 2.5s linear forwards;
+    filter: drop-shadow(0 0 3px #ff0000);
+}
+
+        /* --- 2. Hiệu ứng cho nút HỒI MÁU (Màu Xanh Lá Cây) --- */
+        .bubble-effect-heal::before {
+    /* Quan trọng: Chỉ dùng ::before để đơn giản hóa hiệu ứng nổ bung */
+    content: '';
+    top: 0;
+    left: 55%;
+    width: 100%;
+    height: 100%;
+    
+    filter: drop-shadow(0 0 4px #68d391);
+
+    background-image: 
+        /* 5 Trái tim ĐẶC (đã thêm viền stroke='%23276749' stroke-width='1') */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2348bb78' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%235be08a' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2338a169' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2368d391' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2381e6a2' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2348bb78' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%235be08a' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2338a169' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23276749' stroke-width='1' fill='%2368d391' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        
+        /* 3 Trái tim VIỀN (đã tăng stroke-width='2' cho dày hơn) */
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2348bb78' stroke-width='2' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2368d391' stroke-width='2' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2348bb78' stroke-width='2' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%2368d391' stroke-width='2' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23a7f3d0' stroke-width='2' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+
+    /* Áp dụng animation nổ bung */
+    animation: heart-burst 1s ease-out forwards;
+}
+.bubble-effect-heal::after {
+    display: none; /* Ẩn đi để chỉ dùng ::before */
+}
+
+        /* --- 3. Hiệu ứng cho nút PHÒNG THỦ (Màu Nâu Vàng) --- */
+        .bubble-effect-defend::before {
+            top: -70%;
+            left: 65%;
+            background-image: radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 10%, #ca8a04 15%, transparent 20%), radial-gradient(circle, #ca8a04 10%, transparent 20%), radial-gradient(circle, #ca8a04 15%, transparent 25%), radial-gradient(circle, transparent 15%, #ca8a04 20%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 15%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 22%), radial-gradient(circle, #ca8a04 10%, transparent 10%);
+            background-size: 10% 10%, 20% 20%, 15% 20%, 15% 15%, 25% 25%, 10% 15%, 20% 25%, 18% 18%, 15% 15%, 20% 20%;
+            background-position: 8% 90%, 10% 90%, 10% 90%, 20% 80%, 45% 80%, 25% 90%, 30% 80%, 40% 90%, 35% 85%, 50% 90%;
+            animation: topbubbles 2s linear forwards;
+        }
+        .bubble-effect-defend::after {
+            bottom: -70%;
+            left: 65%;
+            background-image: radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 10%, #ca8a04 15%, transparent 20%), radial-gradient(circle, #ca8a04 10%, transparent 20%), radial-gradient(circle, #ca8a04 15%, transparent 25%), radial-gradient(circle, transparent 15%, #ca8a04 20%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 15%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 22%), radial-gradient(circle, #ca8a04 10%, transparent 10%);
+            background-size: 10% 10%, 20% 20%, 15% 20%, 15% 15%, 25% 25%, 10% 15%, 20% 25%, 18% 18%, 15% 15%, 20% 20%;
+            background-position: 90% 0%, 30% 10%, 45% 15%, 50% 5%, 65% 0%, 70% 0%, 75% 0%, 85% 10%, 80% 15%, 60% 10%;
+            animation: bottombubbles 2s linear forwards;
+        }
+
+        /* --- 4. Hiệu ứng cho nút BỎ CHẠY (Màu Trắng Xanh Biển) --- */
+        .bubble-effect-flee::before {
+            top: -70%;
+            left: 65%;
+            background-image: radial-gradient(circle, #67E8F9 20%, transparent 20%), radial-gradient(circle, transparent 15%, #67E8F9 15%, transparent 25%), radial-gradient(circle, #67E8F9 20%, transparent 20%), radial-gradient(circle, transparent 10%, #67E8F9 15%, transparent 20%), radial-gradient(circle, #67E8F9 10%, transparent 20%), radial-gradient(circle, #67E8F9 15%, transparent 25%), radial-gradient(circle, transparent 15%, #67E8F9 20%, transparent 25%), radial-gradient(circle, #67E8F9 20%, transparent 15%), radial-gradient(circle, transparent 15%, #67E8F9 15%, transparent 22%), radial-gradient(circle, #67E8F9 10%, transparent 10%);
+            background-size: 10% 10%, 20% 20%, 15% 20%, 15% 15%, 25% 25%, 10% 15%, 20% 25%, 18% 18%, 15% 15%, 20% 20%;
+            background-position: 8% 90%, 10% 90%, 10% 90%, 20% 80%, 45% 80%, 25% 90%, 30% 80%, 40% 90%, 35% 85%, 50% 90%;
+            animation: topbubbles 2s linear forwards;
+        }
+        .bubble-effect-flee::after {
+            bottom: -70%;
+            left: 65%;
+            background-image: radial-gradient(circle, #67E8F9 20%, transparent 20%), radial-gradient(circle, transparent 15%, #67E8F9 15%, transparent 25%), radial-gradient(circle, #67E8F9 20%, transparent 20%), radial-gradient(circle, transparent 10%, #67E8F9 15%, transparent 20%), radial-gradient(circle, #67E8F9 10%, transparent 20%), radial-gradient(circle, #67E8F9 15%, transparent 25%), radial-gradient(circle, transparent 15%, #67E8F9 20%, transparent 25%), radial-gradient(circle, #67E8F9 20%, transparent 15%), radial-gradient(circle, transparent 15%, #67E8F9 15%, transparent 22%), radial-gradient(circle, #67E8F9 10%, transparent 10%);
+            background-size: 10% 10%, 20% 20%, 15% 20%, 15% 15%, 25% 25%, 10% 15%, 20% 25%, 18% 18%, 15% 15%, 20% 20%;
+            background-position: 90% 0%, 30% 10%, 45% 15%, 50% 5%, 65% 0%, 70% 0%, 75% 0%, 85% 10%, 80% 15%, 60% 10%;
+            animation: bottombubbles 2s linear forwards;
+        }
+
+
+        /* Keyframes (giữ nguyên, dùng chung cho tất cả) */
+        @keyframes topbubbles {
+            50% {
+                background-position: 2% 70%, 0% 20%, 10% 50%, 20% 0%, 20% 20%, 20% 40%, 50% 20%, 30% 20%, 60% 30%, 40% 50%;
+            }
+            100% {
+                background-position: 0% 50%, 0% 10%, 10% 30%, 20% -10%, 10% 5%, 20% 20%, 40% 10%, 30% 10%, 60% 15%, 40% 20%;
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+
+        @keyframes bottombubbles {
+            50% {
+                background-position: 80% 70%, 20% 75%, 45% 50%, 60% 60%, 65% 55%, 70% 70%, 80% 75%, 90% 60%, 80% 50%, 60% 80%;
+            }
+            100% {
+                background-position: 80% 85%, 20% 90%, 50% 50%, 60% 90%, 50% 95%, 70% 70%, 90% 100%, 90% 80%, 80% 70%, 70% 85%;
+                background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+        @keyframes heart-burst {
+    0% {
+        /* Bắt đầu: Ở tâm, kích thước = 0, hiện rõ */
+        background-size: 0px, 0px, 0px, 0px, 0px, 0px, 0px, 0px;
+        background-position: 50% 50%, 50% 50%, 50% 50%, 50% 50%, 50% 50%, 50% 50%, 50% 50%, 50% 50%;
+        opacity: 1;
+    }
+    100% {
+        /* Kết thúc: Tăng kích thước tối đa của các trái tim ở đây */
+        background-size: 60px, 45px, 55px, 70px, 50px, 65px, 35px, 58px;
+        background-position: -40% -20%, 140% 10%, 15% 150%, 85% 130%, 130% -10%, -50% 70%, 30% -40%, 70% 140%;
+        opacity: 0;
+    }
+}
+    </style>
+</head>
+<body>
+    <div id="welcomeOverlay" class="modal-overlay" style="display: none; flex-direction: column; z-index: 3000;">
+        <h1 id="welcomeText" class="text-4xl font-bold text-white mb-4">Chào mừng Anh hùng tới !!</h1>
+        <img id="welcomeHero" src="" alt="Anh Hùng Chào Mừng" class="avatar-image jumping-hero">
+    </div>
+
+    <div class="main-wrapper" style="display: none;">
+        <div class="game-container">
+            <div id="animationContainer"></div>
+            <button id="historyButton" title="Xem lịch sử"><i class="fa-solid fa-scroll"></i></button>
+            <button id="rulesButton" title="Xem luật chơi"><i class="fa-solid fa-book-open"></i></button>
+            <h1>Chiến Đấu Sinh Tồn</h1>
+            <div class="status-section">
+                <div class="player-stats">
+                    <img id="playerAvatar" src="" alt="Anh Hùng" class="avatar-image">
+                    <h2>Anh Hùng</h2>
+                    <div class="stats-bars">
+                        <div>
+                            <p class="text-left">Máu: <i class="fa-solid fa-heart text-red-500"></i> <span id="playerHealthText">100 / 100</span></p>
+                            <div class="health-bar-container">
+                                <div id="playerHealthBar" class="health-bar" style="width: 100%;"></div>
+                            </div>
+                            <div id="playerStatusEffects" class="status-effects-container"></div>
+                        </div>
+                        <div>
+                            <p class="mt-2 text-left">Năng lượng: <i class="fa-solid fa-bolt text-yellow-400"></i> <span id="playerPowerText">0 / 50</span></p>
+                            <div class="power-bar-container">
+                                <div id="playerPowerBar" class="power-bar" style="width: 0%;"></div>
+                            </div>
+                            <p class="mt-4 text-left">Điểm: <i class="fa-solid fa-star text-yellow-300"></i> <span id="playerScoreText">0</span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="monster-stats">
+                    <img id="monsterAvatar" src="" alt="Quái Vật" class="avatar-image">
+                    <h2>Quái Vật</h2>
+                    <div class="stats-bars">
+                        <div>
+                            <p class="text-left">Máu: <i class="fa-solid fa-heart text-red-500"></i> <span id="monsterHealthText">100</span> / 100</p>
+                            <div class="health-bar-container">
+                                <div id="monsterHealthBar" class="health-bar" style="width: 100%;"></div>
+                            </div>
+                            <div id="monsterStatusEffects" class="status-effects-container"></div>
+                        </div>
+                        <div>
+                            <div id="monsterShieldSection" class="mt-2">
+                                <p class="text-left" id="monsterShieldDisplay">Giáp: <i class="fa-solid fa-shield-alt text-blue-400"></i> <span id="monsterShieldText">0</span></p>
+                                <div class="shield-bar-container" id="monsterShieldBarContainer">
+                                    <div id="monsterShieldBar" class="shield-bar" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="round-counter">
+                 <i class="fa-solid fa-flag text-gray-400"></i>
+                 <p>Vòng <span id="roundNumber" class="round-number">1</span></p>
+                 <i class="fa-solid fa-flag text-gray-400"></i>
+            </div>
+
+            <div id="messageBox" class="message-box">
+                Một Quái Vật đáng sợ xuất hiện! Hãy chiến đấu!
+            </div>
+
+            <button id="activateSpecialSkillButton"><i class="fa-solid fa-hand-sparkles"></i> Kích hoạt Kĩ năng Đặc Biệt</button>
+
+            <div class="action-buttons">
+                <button id="attackButton" class="action-button"><i class="fa-solid fa-hand-fist"></i> Tấn Công</button>
+                <button id="healButton" class="action-button"><i class="fa-solid fa-hand-holding-medical"></i> Hồi Máu</button>
+                <button id="defendButton" class="action-button"><i class="fa-solid fa-shield-halved"></i> Phòng Thủ</button>
+                <button id="fleeButton" class="action-button"><i class="fa-solid fa-person-running"></i> Bỏ Chạy</button>
+            </div>
+
+            <button id="restartButton">Chơi Lại</button>
+        </div>
+    </div>
+
+    <div id="shopModalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <p class="text-2xl font-bold mb-4">Cửa hàng</p>
+            <p class="mb-4">Vàng hiện có: <span id="currentGoldText">0</span> <i class="fa-solid fa-coins text-yellow-500"></i></p>
+            <div class="modal-buttons">
+                <button id="buyHealthButton" class="modal-button">
+                    <i class="fa-solid fa-heart-circle-plus"></i> Mua +25 Máu Tối Đa (100 Vàng)
+                </button>
+                <button id="buyPowerButton" class="modal-button">
+                    <i class="fa-solid fa-bolt-lightning"></i> Mua +25 Năng Lượng Tối Đa (200 Vàng)
+                </button>
+                <button id="exitShopButton" class="modal-button gray-button">
+                    <i class="fa-solid fa-door-open"></i> Thoát Cửa Hàng
+                </button>
+            </div>
+            <p id="shopMessage" class="text-sm mt-4 text-red-300"></p>
+        </div>
+    </div>
+
+    <div id="historyModalOverlay" class="modal-overlay">
+        <div class="modal-content">
+            <p class="text-2xl font-bold mb-4">Lịch sử trận đấu</p>
+            <ul id="historyLogList"></ul>
+            <button id="closeHistoryButton" class="modal-button gray-button">
+                <i class="fa-solid fa-times"></i> Đóng
+            </button>
+        </div>
+    </div>
+    
+    <div id="rulesModalOverlay" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div id="gameRules">
+                <h2>Tóm tắt Cơ chế Trò chơi Chiến Đấu</h2>
+                <p>Đây là chi tiết về các hành động của bạn và các trường hợp có thể xảy ra trong trận chiến:</p>
+                <h3>1. Hành Động của Anh Hùng</h3>
+                <h4>A. Tấn Công</h4>
+                <ul>
+                    <li><strong>Mô tả:</strong> Gây sát thương trực tiếp lên Quái Vật.</li>
+                    <li><strong>Sát thương thông thường:</strong> Ngẫu nhiên từ <strong>15 đến 35</strong> điểm.</li>
+                    <li><strong>Tích lũy Năng lượng:</strong> Bằng <strong>50% - 75%</strong> sát thương gây ra.</li>
+                </ul>
+                <h4>B. Hồi Máu</h4>
+                <ul>
+                    <li><strong>Mô tả:</strong> Tự hồi phục máu cho Anh Hùng.</li>
+                    <li><strong>Lượng hồi phục thông thường:</strong> Ngẫu nhiên từ <strong>10 đến 25</strong> điểm máu. (Tối đa 100 máu)</li>
+                    <li><strong>Tích lũy Năng lượng:</strong> Bằng <strong>50% - 75%</strong> lượng máu hồi phục.</li>
+                </ul>
+                <h4>C. Phòng Thủ</h4>
+                <ul>
+                    <li><strong>Mô tả:</strong> Chuẩn bị cho đòn tấn công của Quái Vật giảm sát thương nhận vào. Khi bạn phòng thủ, Quái Vật <strong>chắc chắn sẽ tấn công</strong> (không có khả năng bỏ lỡ lượt).</li>
+                    <li><strong>Tích lũy Năng lượng:</strong> Bằng <strong>50% - 75%</strong> sát thương đã đỡ được.</li>
+                    <li><strong>Các Trường Hợp & Tỷ lệ:</strong>
+                        <ul>
+                            <li><strong>Phòng thủ hoàn hảo:</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>25%</strong></li>
+                                    <li><strong>Hiệu ứng:</strong> **Phòng Thủ Hoàn Hảo**.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Phòng thủ bị vỡ:</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>10%</strong> (nếu không phải phòng thủ hoàn hảo)</li>
+                                    <li><strong>Hiệu ứng:</strong> Bạn nhận sát thương gốc của Quái Vật <strong>cộng thêm 20%</strong> sát thương gốc đó.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Phản đòn:</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>15%</strong> (nếu không phải phòng thủ hoàn hảo hoặc phòng thủ bị vỡ)</li>
+                                    <li><strong>Hiệu ứng:</strong> Bạn nhận <strong>50%</strong> sát thương từ Quái Vật và đồng thời gây lại sát thương bằng <strong>30%</strong> sát thương gốc của Quái Vật cho chính nó.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Giảm sát thương thông thường:</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>50%</strong> (các trường hợp còn lại)</li>
+                                    <li><strong>Hiệu ứng:</strong> Bạn nhận sát thương gốc của Quái Vật đã giảm ngẫu nhiên từ <strong>30% đến 60%</strong>.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <h4>D. Bỏ Chạy</h4>
+                <ul>
+                    <li><strong>Mô tả:</strong> Cố gắng thoát khỏi trận chiến.</li>
+                    <li><strong>Các Trường Hợp & Tỷ lệ:</strong>
+                        <ul>
+                            <li><strong>Bỏ chạy thành công:</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>30%</strong></li>
+                                    <li><strong>Hiệu ứng:</strong> Trận chiến kết thúc, bạn thoát an toàn.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Bỏ chạy thất bại (chết luôn):</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>40%</strong> (nếu không bỏ chạy thành công)</li>
+                                    <li><strong>Hiệu ứng:</strong> Bạn không thể thoát và bị Quái Vật kết liễu ngay lập tức.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Bỏ chạy thất bại (đánh tiếp) + Chảy Máu:</strong>
+                                <ul>
+                                    <li><strong>Tỷ lệ:</strong> <strong>30%</strong> (các trường hợp còn lại)</li>
+                                    <li><strong>Hiệu ứng:</strong> Bạn không thể thoát, trận chiến tiếp tục. Quái Vật sẽ tấn công bạn với <strong>15 sát thương cố định</strong>. Bạn bị <strong>chảy máu 1-5 máu mỗi lượt</strong> trong vòng <strong>5 lượt</strong>.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>2. Lượt của Quái Vật</h3>
+                <ul>
+                    <li><strong>Tỷ lệ tấn công:</strong>
+                        <ul>
+                            <li>Khi bạn chọn <strong>Tấn Công</strong> (thường hoặc đặc biệt) hoặc <strong>Bỏ Chạy</strong> (thành công, chết luôn): Quái Vật <strong>chắc chắn (100%)</strong> sẽ tấn công bạn.</li>
+                            <li>Khi bạn chọn <strong>Hồi Máu (thông thường):</strong> Quái Vật có <strong>90%</strong> cơ hội tấn công (<strong>10%</strong> bỏ lỡ lượt).</li>
+                            <li>Khi bạn chọn <strong>Phòng Thủ</strong> (thường) hoặc <strong>Hồi Máu (Có đủ Năng lượng)</strong>: Quái Vật <strong>chắc chắn (100%)</strong> sẽ tấn công.</li>
+                            <li>Khi bạn **Bỏ Chạy thất bại (đánh tiếp)**: Quái Vật **chắc chắn (100%)** tấn công với **15 sát thương cố định**.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Sát thương của Quái Vật:</strong> Ngẫu nhiên từ <strong>15 đến 50</strong> điểm (áp dụng cho tấn công thông thường, không phải sát thương cố định khi bỏ chạy thất bại).</li>
+                    <li>Quái Vật có thể bị ảnh hưởng bởi các hiệu ứng như **Chảy Máu (Quái Vật)** và **Lời Nguyền**.</li>
+                </ul>
+                <h3>3. Kĩ năng đặc biệt (Khi Năng lượng đầy - 50 điểm)</h3>
+                <ul>
+                    <li>Khi năng lượng đầy, bạn có thể nhấn nút "Kích hoạt Kĩ năng Đặc Biệt" để biến các hành động thông thường thành các kĩ năng đặc biệt sau:</li>
+                    <li><strong>Tấn Công Đặc Biệt:</strong>
+                        <ul>
+                            <li><strong>Hiệu ứng:</strong> Gây sát thương <strong>40 điểm</strong> + ngẫu nhiên <strong>95%-150%</strong> của 40 điểm đó (tổng 78-100 sát thương). Đồng thời, đỡ được <strong>35%</strong> sát thương nhận vào từ Quái Vật trong lượt đó. Gây lại <strong>15 sát thương cố định</strong> và gây **Chảy Máu (Quái Vật)** cho Quái Vật trong **2 lượt**.</li>
+                            <li>Tiêu hao toàn bộ <strong>50</strong> điểm năng lượng.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Hồi Máu Đặc Biệt:</strong>
+                        <ul>
+                            <li><strong>Hiệu ứng:</strong> Hồi phục ngẫu nhiên từ <strong>45-55</strong> điểm máu.</li>
+                            <li>Đồng thời nhận được hiệu ứng <strong>Phòng Thủ</strong> (giảm sát thương <strong>20%</strong>) cho lượt tấn công tiếp theo của Quái Vật và hiệu ứng <strong>Hồi máu tiếp ứng</strong> (hồi 20 máu mỗi lượt trong 3 lượt).</li>
+                            <li>Tiêu hao toàn bộ <strong>50</strong> điểm năng lượng.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Phòng Thủ Đặc Biệt:</strong>
+                        <ul>
+                            <li><strong>Hiệu ứng:</strong> Mất <strong>20 máu</strong> của bản thân. Nhận <strong>3 lượt Phòng Thủ Hoàn Hảo</strong>. Gây **Lời Nguyền** lên Quái Vật.</li>
+                            <li>Tiêu hao toàn bộ <strong>50</strong> điểm năng lượng.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Cướp:</strong>
+                        <ul>
+                            <li><strong>Hiệu ứng:</strong> Cướp ngẫu nhiên từ <strong>50-500 vàng</strong>. Sau khi cướp, bạn sẽ được đưa đến Cửa hàng.</li>
+                            <li>Tiêu hao toàn bộ <strong>50</strong> điểm năng lượng.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3>4. Loại Quái Vật & Tính Điểm</h3>
+                <ul>
+                    <li>Trò chơi có **vô hạn quái vật**. Khi một quái vật bị đánh bại, một con mới sẽ xuất hiện.</li>
+                    <li><strong>Quái Vật Thông Thường:</strong>
+                        <ul>
+                            <li><strong>Tỷ lệ xuất hiện:</strong> 40%</li>
+                            <li>Không có giáp.</li>
+                            <li>Khi đánh bại: Cộng thêm **50 điểm**.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Quái Vật Bọc Giáp:</strong>
+                        <ul>
+                            <li><strong>Tỷ lệ xuất hiện:</strong> 60%</li>
+                            <li><strong>Giáp ban đầu:</strong> Ngẫu nhiên từ <strong>20-100 điểm</strong>. (60% cơ hội 20-50 giáp, 40% cơ hội 50-100 giáp)</li>
+                            <li><strong>Cơ chế Giáp:</strong> Khi Quái Vật nhận sát thương, giáp sẽ giảm trước. Đồng thời, máu của Quái Vật cũng sẽ giảm một phần nhỏ.</li>
+                            <li><strong>Hiển thị Giáp:</strong> Giáp hiện tại / Giáp ban đầu (ví dụ: 49/49).</li>
+                            <li><strong>Tỷ lệ bảo vệ máu của Giáp:</strong> Mỗi điểm sát thương giáp hấp thụ sẽ làm giảm máu của Quái Vật ngẫu nhiên từ <strong>25% đến 45%</strong> của sát thương đó (tương đương 55%-75% bảo vệ).</li>
+                            <li>Khi đánh bại: Cộng thêm **100 điểm**.</li>
+                        </ul>
+                    </li>
+                </ul>
+                ---
+                <h3>5. Giải thích chi tiết các Hiệu ứng/Trạng thái</h3>
+                <ul>
+                    <li><strong>Chảy Máu (Quái Vật):</strong>
+                        <ul>
+                            <li>Gây sát thương xuyên giáp cho Quái Vật trong **2 lượt**.</li>
+                            <li>Sát thương: Ngẫu nhiên từ <strong>5-10 máu</strong> mỗi lượt.</li>
+                            <li>Nếu Quái Vật có giáp, sát thương tăng thêm ngẫu nhiên **15-20 máu** mỗi lượt (do gỉ sét), gây tổng cộng **20-30 máu** mỗi lượt.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Phòng Thủ Hoàn Hảo:</strong>
+                        <ul>
+                            <li>Tránh được **tất cả** đòn đánh từ Quái Vật mà không bị mất máu.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Lời Nguyền:</strong>
+                        <ul>
+                            <li>Gây sát thương xuyên giáp cho Quái Vật.</li>
+                            <li>Lần đầu sử dụng: Kéo dài **3 lượt**.</li>
+                            <li>Sát thương cộng dồn: Bắt đầu từ **10 máu** và tăng thêm **5 máu** mỗi lượt cộng dồn (mặc định: 10 máu, cộng dồn lần 1: 15 máu, cộng dồn lần 2: 20 máu, ...).</li>
+                            <li>Nếu lời nguyền hết 3 lượt mà không được cộng dồn, sát thương sẽ reset về **10 máu** cho lần sử dụng tiếp theo.</li>
+                            <li>Nếu lời nguyền đang tồn tại và được kích hoạt lại, thời gian hiệu lực sẽ được **cộng thêm 3 lượt**.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Hồi máu tiếp ứng:</strong>
+                        <ul>
+                            <li>Hồi <strong>20 máu</strong> vào đầu mỗi lượt của bạn.</li>
+                            <li>Kéo dài <strong>3 lượt</strong>.</li>
+                            <li>Hiệu ứng không cộng dồn thời gian.</li>
+                        </ul>
+                    </li>
+                </ul>
+                ---
+                <h3>6. Cửa hàng</h3>
+                <ul>
+                    <li>Bạn có thể truy cập Cửa hàng sau khi sử dụng kỹ năng **Cướp**.</li>
+                    <li><strong>Máu Tối Đa:</strong>
+                        <ul>
+                            <li>Mua thêm <strong>+25 máu tối đa</strong>. Giới hạn tối đa <strong>300 máu</strong>.</li>
+                            <li>Giá: <strong>100 vàng</strong>.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Năng Lượng Tối Đa:</strong>
+                        <ul>
+                            <li>Mua thêm <strong>+25 năng lượng tối đa</strong>. Giới hạn tối đa <strong>200 năng lượng</strong>.</li>
+                            <li>Giá: <strong>200 vàng</strong>.</li>
+                        </ul>
+                    </li>
+                    <li>Sau khi mua sắm hoặc thoát, trò chơi sẽ tiếp tục.</li>
+                </ul>
+            </div>
+            <button id="closeRulesButton" class="modal-button gray-button" style="margin-top: 20px;">
+                <i class="fa-solid fa-times"></i> Đóng
+            </button>
+        </div>
+    </div>
+
+    <div id="tutorialOverlay">
+        <div class="spotlight"></div>
+        <div id="tutorialBox">
+            <p id="tutorialText"></p>
+            <button id="tutorialNextButton" class="modal-button gray-button">Tiếp theo</button>
+            <button id="tutorialSkipButton" class="modal-button" style="display: none;">Bỏ qua hướng dẫn</button>
+        </div>
+    </div>
+    
+    <footer style="min-height: 300px;"></footer>
+
+    <script>
+        // Game state variables
+        let playerHealth = 100;
+        let monsterHealth = 100;
+        let playerPower = 0;
+        const PLAYER_POWER_MAX = 50;
+        let score = 0;
+        let gold = 0;
+        let playerMaxHealth = 100;
+        let playerMaxPower = 50;
+        let gameActive = true;
+        let isDefending = false;
+        let isPerfectDefending = false;
+        let isCountering = false;
+        let isDefenseBroken = false;
+        let bleedingTurns = 0;
+        let bleedingDamagePerTurn = 0;
+        let isFailedFleeAttack = false;
+        let playerUsedHeal = false;
+        let isSpecialSkillMode = false;
+        let perfectDefenseTurns = 0;
+        let cursedTurns = 0;
+        let currentCurseDamage = 0;
+        const CURSE_INITIAL_DAMAGE = 10;
+        const CURSE_DAMAGE_INCREMENT = 5;
+        const CURSE_DURATION = 3;
+        let monsterBleedingTurns = 0;
+        let monsterBleedingDamagePerTurn = 0;
+        let regenHealTurns = 0;
+        const REGEN_HEAL_AMOUNT = 20;
+        const REGEN_HEAL_DURATION = 3;
+        let monsterHasShield = false;
+        let monsterShield = 0;
+        let monsterMaxShield = 0;
+        const SHIELD_SPAWN_CHANCE = 0.6;
+        const SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER = 0.25;
+        const SHIELD_HEALTH_REDUCTION_MAX_MULTIPLIER = 0.45;
+        let currentMonsterType = '';
+        let enhancedHealActivated = false;
+        let enhancedAttackActivated = false;
+        const MONSTER_MISS_CHANCE_ON_HEAL = 0.10;
+        const PERFECT_DEFEND_CHANCE = 0.25;
+        const DEFENSE_BREAK_CHANCE = 0.10;
+        const DEFENSE_BREAK_EXTRA_DAMAGE_MULTIPLIER = 0.20;
+        const COUNTER_DEFEND_CHANCE = 0.15;
+        const COUNTER_DAMAGE_MULTIPLIER = 0.3;
+        const FLEE_SUCCESS_CHANCE = 0.3;
+        const FLEE_FAIL_DEATH_CHANCE = 0.4;
+        const ENHANCED_HEAL_AMOUNT_MIN = 45;
+        const ENHANCED_HEAL_AMOUNT_MAX = 55;
+        const ENHANCED_ATTACK_BASE_DAMAGE = 40;
+        const ENHANCED_ATTACK_BONUS_DAMAGE_MIN_PERCENT = 0.95;
+        const ENHANCED_ATTACK_BONUS_DAMAGE_MAX_PERCENT = 1.50;
+        const ENHANCED_ATTACK_DEFENSE_REDUCTION = 0.35;
+        const ENHANCED_ATTACK_FIXED_COUNTER_DAMAGE = 15;
+        const ENHANCED_ATTACK_BLEED_TURNS = 2;
+        const ENHANCED_ATTACK_BLEED_DAMAGE_MIN = 5;
+        const ENHANCED_ATTACK_BLEED_DAMAGE_MAX = 10;
+        const RUST_BLEED_BONUS_MIN = 15;
+        const RUST_BLEED_BONUS_MAX = 20;
+        const ROB_GOLD_MIN = 50;
+        const ROB_GOLD_MAX = 500;
+        let gameHistory = [];
+        const MAX_HISTORY_ENTRIES = 50;
+        const MAX_PLAYER_HEALTH = 300;
+        const MAX_PLAYER_POWER = 200;
+        let currentRound = 1;
+        let isMonsterDefeated = false;
+
+        // Image data
+        const heroImage = "https://placehold.co/100x100/667eea/ffffff?text=Hero";
+        const monsterImage = "https://placehold.co/100x100/e53e3e/ffffff?text=Orc";
+        const monsterArmorImage = "https://placehold.co/100x100/718096/ffffff?text=Armored";
+
+        // DOM Elements
+        const playerHealthText = document.getElementById('playerHealthText');
+        const monsterHealthText = document.getElementById('monsterHealthText');
+        const playerPowerText = document.getElementById('playerPowerText'); 
+        const playerScoreText = document.getElementById('playerScoreText'); 
+        const currentGoldText = document.getElementById('currentGoldText');
+        const playerHealthBar = document.getElementById('playerHealthBar');
+        const monsterHealthBar = document.getElementById('monsterHealthBar');
+        const playerPowerBar = document.getElementById('playerPowerBar');   
+        const messageBox = document.getElementById('messageBox');
+        const attackButton = document.getElementById('attackButton');
+        const healButton = document.getElementById('healButton');
+        const defendButton = document.getElementById('defendButton');
+        const fleeButton = document.getElementById('fleeButton');
+        const restartButton = document.getElementById('restartButton');
+        const playerStatusEffects = document.getElementById('playerStatusEffects');
+        const monsterStatusEffects = document.getElementById('monsterStatusEffects');
+        const monsterShieldDisplay = document.getElementById('monsterShieldDisplay');
+        const monsterShieldTextElement = document.getElementById('monsterShieldText');
+        const monsterShieldBarElement = document.getElementById('monsterShieldBar');
+        const monsterShieldBarContainer = document.getElementById('monsterShieldBarContainer');
+        const shopModalOverlay = document.getElementById('shopModalOverlay');
+        const buyHealthButton = document.getElementById('buyHealthButton');
+        const buyPowerButton = document.getElementById('buyPowerButton');
+        const exitShopButton = document.getElementById('exitShopButton');
+        const shopMessage = document.getElementById('shopMessage');
+        const activateSpecialSkillButton = document.getElementById('activateSpecialSkillButton');
+        const historyButton = document.getElementById('historyButton');
+        const historyModalOverlay = document.getElementById('historyModalOverlay');
+        const historyLogList = document.getElementById('historyLogList');
+        const closeHistoryButton = document.getElementById('closeHistoryButton');
+        const rulesButton = document.getElementById('rulesButton');
+        const rulesModalOverlay = document.getElementById('rulesModalOverlay');
+        const closeRulesButton = document.getElementById('closeRulesButton');
+        const playerAvatar = document.getElementById('playerAvatar');
+        const monsterAvatar = document.getElementById('monsterAvatar');
+        const roundNumber = document.getElementById('roundNumber');
+        const monsterShieldSection = document.getElementById('monsterShieldSection');
+        const tutorialOverlay = document.getElementById('tutorialOverlay');
+        const tutorialBox = document.getElementById('tutorialBox');
+        const tutorialText = document.getElementById('tutorialText');
+        const tutorialNextButton = document.getElementById('tutorialNextButton');
+        const tutorialSkipButton = document.getElementById('tutorialSkipButton');
+        const spotlight = document.querySelector('.spotlight');
+        const welcomeOverlay = document.getElementById('welcomeOverlay');
+        const welcomeHero = document.getElementById('welcomeHero');
+        const mainWrapper = document.querySelector('.main-wrapper');
+        const animationContainer = document.getElementById('animationContainer');
+
+        // Tutorial System
+        const tutorialSteps = [
+            { id: 'welcome', element: '#messageBox', text: 'Chào mừng! Đây là thanh thông báo, nơi hiển thị diễn biến trận đấu.', shown: false, trigger: () => true },
+            { id: 'player_avatar', element: '#playerAvatar', text: 'Đây là bạn, một Anh Hùng dũng cảm. Hãy để ý thanh máu nhé!', shown: false, trigger: () => true },
+            { id: 'player_health', element: '#playerHealthBar', text: 'Thanh Máu (HP) của bạn. Nếu về 0, bạn sẽ thua.', shown: false, trigger: () => true },
+            { id: 'player_power', element: '#playerPowerBar', text: 'Đây là thanh Năng lượng. Tích lũy bằng cách hành động. Khi đầy, bạn có thể dùng kĩ năng đặc biệt.', shown: false, trigger: () => true },
+            { id: 'player_score', element: '#playerScoreText', text: 'Điểm số của bạn sẽ tăng lên mỗi khi hạ gục một quái vật.', shown: false, trigger: () => true },
+            { id: 'history_button', element: '#historyButton', text: 'Nhấn vào đây để xem lại lịch sử các sự kiện đã diễn ra trong trận đấu.', shown: false, trigger: () => true },
+            { id: 'rules_button', element: '#rulesButton', text: 'Nếu bạn quên luật chơi, hãy nhấn vào đây để xem lại chi tiết cơ chế game.', shown: false, trigger: () => true },
+            { id: 'attack_button', element: '#attackButton', text: 'Nút Tấn Công: Gây sát thương cơ bản lên quái vật.', shown: false, trigger: () => true },
+            { id: 'heal_button', element: '#healButton', text: 'Nút Hồi Máu: Phục hồi lại một lượng máu đã mất.', shown: false, trigger: () => true },
+            { id: 'defend_button', element: '#defendButton', text: 'Nút Phòng Thủ: Giảm sát thương từ đòn tấn công tiếp theo của quái vật.', shown: false, trigger: () => true },
+            { id: 'flee_button', element: '#fleeButton', text: 'Nút Bỏ Chạy: Có tỉ lệ thoát khỏi trận đấu, nhưng thất bại có thể phải trả giá đắt!', shown: false, trigger: () => true },
+
+            { id: 'power_full', element: '#activateSpecialSkillButton', text: 'Năng lượng đã đầy! Nhấn vào đây để chuyển sang chế độ dùng kĩ năng đặc biệt.', shown: false, trigger: () => playerPower >= playerMaxPower },
+            { id: 'special_attack', element: '#attackButton.special-mode', text: 'Tấn Công Đặc Biệt: Gây sát thương cực lớn và nhiều hiệu ứng có lợi khác.', shown: false, trigger: () => isSpecialSkillMode },
+            { id: 'special_heal', element: '#healButton.special-mode', text: 'Hồi Máu Đặc Biệt: Hồi một lượng máu lớn và cho bạn hiệu ứng hồi máu theo thời gian.', shown: false, trigger: () => isSpecialSkillMode },
+            { id: 'special_defend', element: '#defendButton.special-mode', text: 'Phòng Thủ Đặc Biệt: Hy sinh chút máu để nhận trạng thái bất tử trong vài lượt và nguyền rủa đối thủ.', shown: false, trigger: () => isSpecialSkillMode },
+            { id: 'special_rob', element: '#fleeButton.special-mode', text: 'Cướp: Cướp vàng từ quái vật và mở ra Cửa Hàng để nâng cấp bản thân.', shown: false, trigger: () => isSpecialSkillMode },
+
+            { id: 'armored_monster', element: '#monsterShieldSection', text: 'Quái vật này có Giáp! Bạn phải phá vỡ lớp giáp này trước khi có thể gây sát thương tối đa vào máu của nó.', shown: false, trigger: () => monsterHasShield },
+            { id: 'player_bleeding', element: '#playerStatusEffects', text: 'Bạn đang bị Chảy Máu! Bạn sẽ mất một lượng máu ở đầu mỗi lượt.', shown: false, trigger: () => bleedingTurns > 0 },
+            { id: 'player_regen', element: '#playerStatusEffects', text: 'Bạn nhận được Hồi máu tiếp ứng! Bạn sẽ được hồi máu ở đầu mỗi lượt.', shown: false, trigger: () => regenHealTurns > 0 },
+            { id: 'monster_bleeding', element: '#monsterStatusEffects', text: 'Quái vật đang bị Chảy Máu! Nó sẽ mất máu ở đầu mỗi lượt.', shown: false, trigger: () => monsterBleedingTurns > 0 },
+            { id: 'monster_cursed', element: '#monsterStatusEffects', text: 'Quái vật bị Lời Nguyền! Nó sẽ mất máu xuyên giáp và sát thương tăng dần theo thời gian.', shown: false, trigger: () => cursedTurns > 0 },
+            { id: 'player_perfect_defense', element: '#playerStatusEffects', text: 'Phòng Thủ Hoàn Hảo! Bạn sẽ không nhận sát thương từ các đòn tấn công của quái vật.', shown: false, trigger: () => perfectDefenseTurns > 0 },
+            
+            { id: 'shop_open', element: '#shopModalOverlay .modal-content', text: 'Chào mừng đến Cửa hàng! Dùng vàng cướp được để mua nâng cấp vĩnh viễn.', shown: false, trigger: () => shopModalOverlay.style.display === 'flex' },
+            { id: 'buy_health', element: '#buyHealthButton', text: 'Nâng cấp này tăng giới hạn máu tối đa của bạn.', shown: false, trigger: () => shopModalOverlay.style.display === 'flex' },
+            { id: 'buy_power', element: '#buyPowerButton', text: 'Nâng cấp này tăng giới hạn năng lượng tối đa.', shown: false, trigger: () => shopModalOverlay.style.display === 'flex' },
+        ];
+
+        let isTutorialActive = false;
+        let seenTutorials = new Set();
+        let hasPlayerDiedBefore = false;
+
+        function positionTutorialForStep() {
+            if (!isTutorialActive) return;
+            const currentStep = tutorialSteps.find(step => step.shown && !step.completed);
+            if (!currentStep) return;
+
+            const targetElement = document.querySelector(currentStep.element);
+            if (!targetElement) return;
+
+            const rect = targetElement.getBoundingClientRect();
+            
+            spotlight.style.top = `${rect.top - 4}px`;
+            spotlight.style.left = `${rect.left - 4}px`;
+            spotlight.style.width = `${rect.width + 8}px`;
+            spotlight.style.height = `${rect.height + 8}px`;
+
+            const boxTop = rect.bottom + 15;
+            tutorialBox.style.top = `${boxTop}px`;
+            tutorialBox.style.left = `${window.innerWidth / 2 - tutorialBox.offsetWidth / 2}px`;
+        }
+        
+        function showNextTutorialStep() {
+            if (isTutorialActive) {
+                const currentStep = tutorialSteps.find(step => step.shown && !step.completed);
+                if(currentStep) currentStep.completed = true;
+            }
+
+            const nextStep = tutorialSteps.find(step => !step.shown && step.trigger());
+            if (nextStep) {
+                isTutorialActive = true;
+                disableAllActionButtons();
+                tutorialOverlay.style.display = 'block';
+                tutorialText.textContent = nextStep.text;
+                nextStep.shown = true;
+                seenTutorials.add(nextStep.id);
+                
+                if(hasPlayerDiedBefore) {
+                    tutorialSkipButton.style.display = 'block';
+                } else {
+                    tutorialSkipButton.style.display = 'none';
+                }
+
+                positionTutorialForStep();
+            } else {
+                hideTutorial();
+            }
+        }
+
+        function hideTutorial() {
+            isTutorialActive = false;
+            tutorialOverlay.style.display = 'none';
+            const currentStep = tutorialSteps.find(step => step.shown && !step.completed);
+            if(currentStep) currentStep.completed = true;
+            enableAllActionButtons();
+            checkTutorialTriggers(); // Check if another tutorial can be triggered
+        }
+        
+        function skipTutorials() {
+            tutorialSteps.forEach(step => {
+                if (seenTutorials.has(step.id)) {
+                    step.shown = true;
+                    step.completed = true;
+                }
+            });
+            hideTutorial();
+            showNextTutorialStep();
+        }
+
+        function checkTutorialTriggers() {
+            if (isTutorialActive) return;
+            const nextStep = tutorialSteps.find(step => !step.shown && step.trigger());
+            if(nextStep) {
+                showNextTutorialStep();
+            }
+        }
+
+
+        function logHistory(message) {
+            messageBox.textContent = message;
+            gameHistory.push(message);
+            if (gameHistory.length > MAX_HISTORY_ENTRIES) {
+                gameHistory.shift();
+            }
+        }
+
+        function initializeGame() {
+            tutorialSteps.forEach(step => {
+                step.shown = false;
+                step.completed = false;
+            });
+            isTutorialActive = false;
+
+            playerHealth = 100;
+            monsterHealth = 100;
+            playerPower = 0; 
+            score = 0; 
+            gold = 0;
+            playerMaxHealth = 100;
+            playerMaxPower = 50;
+            gameActive = true;
+            isDefending = false;
+            isPerfectDefending = false; 
+            isCountering = false;   
+            isDefenseBroken = false;  
+            bleedingTurns = 0;      
+            bleedingDamagePerTurn = 0; 
+            isFailedFleeAttack = false; 
+            playerUsedHeal = false;   
+            isSpecialSkillMode = false;
+            perfectDefenseTurns = 0; 
+            cursedTurns = 0;      
+            currentCurseDamage = 0; 
+            monsterBleedingTurns = 0; 
+            monsterBleedingDamagePerTurn = 0; 
+            regenHealTurns = 0;
+            monsterHasShield = false;
+            monsterShield = 0;
+            monsterMaxShield = 0; 
+            currentMonsterType = '';
+            gameHistory = [];
+            currentRound = 1;
+            playerAvatar.src = heroImage;
+            updateUI(); 
+            attackButton.style.display = 'block';
+            healButton.style.display = 'block';
+            defendButton.style.display = 'block';
+            fleeButton.style.display = 'block';
+            restartButton.style.display = 'none'; 
+            activateSpecialSkillButton.style.display = 'none';
+            shopModalOverlay.style.display = 'none';
+            historyModalOverlay.style.display = 'none';
+            rulesModalOverlay.style.display = 'none';
+            enableAllActionButtons();
+            resetButtonsToNormal();
+            spawnMonster(); 
+            setTimeout(() => showNextTutorialStep(), 500); // Start tutorial
+        }
+
+        function spawnMonster() {
+            monsterHealth = 100;
+            monsterHasShield = false;
+            monsterShield = 0;
+            monsterMaxShield = 0; 
+            cursedTurns = 0;
+            currentCurseDamage = 0; 
+            monsterBleedingTurns = 0;
+            monsterBleedingDamagePerTurn = 0;
+            isMonsterDefeated = false;
+            let spawnMessage;
+            if (Math.random() < SHIELD_SPAWN_CHANCE) {
+                monsterHasShield = true;
+                monsterAvatar.src = monsterArmorImage;
+                const shieldRoll = Math.random();
+                let initialShieldValue;
+                if (shieldRoll < 0.6) {
+                    initialShieldValue = Math.floor(Math.random() * (50 - 20 + 1)) + 20;
+                } else {
+                    initialShieldValue = Math.floor(Math.random() * (100 - 50 + 1)) + 50;
+                }
+                monsterShield = initialShieldValue;
+                monsterMaxShield = initialShieldValue;
+                spawnMessage = `Một Quái Vật bọc giáp (${monsterShield} giáp) đáng sợ xuất hiện! Hãy chiến đấu!`;
+                currentMonsterType = 'armored';
+            } else {
+                monsterAvatar.src = monsterImage;
+                spawnMessage = 'Một Quái Vật đáng sợ xuất hiện! Hãy chiến đấu!';
+                currentMonsterType = 'normal';
+            }
+            logHistory(spawnMessage);
+            updateUI(); 
+            enableAllActionButtons(); 
+            checkTutorialTriggers();
+        }
+
+        function updateUI() {
+            playerHealthText.textContent = `${playerHealth} / ${playerMaxHealth}`; 
+            monsterHealthText.textContent = monsterHealth;
+            playerPowerText.textContent = `${playerPower} / ${playerMaxPower}`; 
+            playerScoreText.textContent = score; 
+            currentGoldText.textContent = gold;
+            roundNumber.textContent = currentRound;
+            playerHealthBar.style.width = `${(Math.max(0, playerHealth) / playerMaxHealth) * 100}%`;
+            monsterHealthBar.style.width = `${Math.max(0, monsterHealth)}%`;
+            playerPowerBar.style.width = `${(playerPower / playerMaxPower) * 100}%`; 
+            
+            if (monsterHasShield) {
+                monsterShieldSection.style.visibility = 'visible';
+                monsterShieldTextElement.textContent = `${Math.max(0, monsterShield)} / ${monsterMaxShield}`; 
+                monsterShieldBarElement.style.width = `${(Math.max(0, monsterShield) / monsterMaxShield) * 100}%`;
+            } else {
+                monsterShieldSection.style.visibility = 'hidden';
+            }
+
+            if (playerPower >= playerMaxPower && !isSpecialSkillMode && gameActive) { 
+                activateSpecialSkillButton.style.display = 'flex';
+            } else {
+                activateSpecialSkillButton.style.display = 'none';
+            }
+            updateStatusIcons();
+            checkTutorialTriggers();
+        }
+
+        function updateStatusIcons() {
+            playerStatusEffects.innerHTML = '';
+            monsterStatusEffects.innerHTML = '';
+            const createIcon = (iconClass, color, title, duration) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'status-effect-icon';
+                wrapper.title = title;
+                const icon = document.createElement('i');
+                icon.className = `fa-solid ${iconClass}`;
+                icon.style.color = color;
+                wrapper.appendChild(icon);
+                if (duration > 0) {
+                    const durationSpan = document.createElement('span');
+                    durationSpan.className = 'duration';
+                    durationSpan.textContent = duration;
+                    wrapper.appendChild(durationSpan);
+                }
+                return wrapper;
+            };
+            if (bleedingTurns > 0) {
+                playerStatusEffects.appendChild(createIcon('fa-tint', '#e53e3e', `Chảy máu: Mất ${bleedingDamagePerTurn} máu mỗi lượt`, bleedingTurns));
+            }
+            if (perfectDefenseTurns > 0) {
+                playerStatusEffects.appendChild(createIcon('fa-shield-alt', '#63b3ed', `Phòng thủ hoàn hảo`, perfectDefenseTurns));
+            }
+            if (regenHealTurns > 0) {
+                playerStatusEffects.appendChild(createIcon('fa-hand-holding-medical', '#48bb78', `Hồi máu tiếp ứng: Hồi ${REGEN_HEAL_AMOUNT} máu mỗi lượt`, regenHealTurns));
+            }
+            if (monsterBleedingTurns > 0) {
+                monsterStatusEffects.appendChild(createIcon('fa-tint', '#e53e3e', `Chảy máu`, monsterBleedingTurns));
+            }
+            if (cursedTurns > 0) {
+                monsterStatusEffects.appendChild(createIcon('fa-skull-crossbones', '#a0aec0', `Bị nguyền rủa: Mất ${currentCurseDamage} máu lượt tới`, cursedTurns));
+            }
+        }
+
+        function disableAllActionButtons() {
+            attackButton.disabled = true;
+            healButton.disabled = true;
+            defendButton.disabled = true;
+            fleeButton.disabled = true;
+            activateSpecialSkillButton.disabled = true;
+        }
+
+        function enableAllActionButtons() {
+            if (isTutorialActive) return;
+            attackButton.disabled = false; 
+            healButton.disabled = false;
+            defendButton.disabled = false;
+            fleeButton.disabled = false;
+            activateSpecialSkillButton.disabled = false;
+        }
+
+        function resetFlagsForPlayerTurn() {
+            isDefending = false; 
+            isPerfectDefending = false; 
+            isCountering = false;
+            isDefenseBroken = false;
+            isFailedFleeAttack = false; 
+            playerUsedHeal = false; 
+        }
+
+        function resetButtonsToNormal() {
+            isSpecialSkillMode = false;
+            attackButton.innerHTML = '<i class="fa-solid fa-hand-fist"></i> Tấn Công';
+            attackButton.classList.remove('special-mode');
+            healButton.innerHTML = '<i class="fa-solid fa-hand-holding-medical"></i> Hồi Máu';
+            healButton.classList.remove('special-mode');
+            defendButton.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Phòng Thủ';
+            defendButton.classList.remove('special-mode');
+            fleeButton.innerHTML = '<i class="fa-solid fa-person-running"></i> Bỏ Chạy';
+            fleeButton.classList.remove('special-mode');
+            activateSpecialSkillButton.style.display = 'none';
+            updateUI();
+        }
+
+        function setButtonsToSpecialMode() {
+            isSpecialSkillMode = true;
+            attackButton.innerHTML = '<i class="fa-solid fa-fire"></i> Tấn Công Đặc Biệt';
+            attackButton.classList.add('special-mode');
+            healButton.innerHTML = '<i class="fa-solid fa-star"></i> Hồi Máu Đặc Biệt';
+            healButton.classList.add('special-mode');
+            defendButton.innerHTML = '<i class="fa-solid fa-castle"></i> Phòng Thủ Đặc Biệt';
+            defendButton.classList.add('special-mode');
+            fleeButton.innerHTML = '<i class="fa-solid fa-sack-dollar"></i> Cướp';
+            fleeButton.classList.add('special-mode');
+            activateSpecialSkillButton.style.display = 'none';
+            logHistory('Năng lượng đầy! Chọn một kĩ năng đặc biệt!');
+            updateUI();
+        }
+
+        async function playerAttack() {
+            if (!gameActive || isTutorialActive) return; 
+            disableAllActionButtons();
+            
+            const btnClone = attackButton.cloneNode(true);
+            btnClone.classList.add('animation-clone');
+            const startRect = attackButton.getBoundingClientRect();
+            const endRect = monsterAvatar.getBoundingClientRect();
+            
+            btnClone.style.left = `${startRect.left}px`;
+            btnClone.style.top = `${startRect.top}px`;
+            document.body.appendChild(btnClone);
+            attackButton.style.visibility = 'hidden';
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            btnClone.style.transform = `translate(${endRect.left - startRect.left + (endRect.width/2) - (startRect.width/2)}px, ${endRect.top - startRect.top + (endRect.height/2) - (startRect.height/2)}px) scale(0.8)`;
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            monsterAvatar.classList.add('shake');
+            monsterHealthBar.parentElement.classList.add('shake');
+            btnClone.style.transform = `translate(0, 0) scale(1)`;
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            document.body.removeChild(btnClone);
+            attackButton.style.visibility = 'visible';
+            monsterAvatar.classList.remove('shake');
+            monsterHealthBar.parentElement.classList.remove('shake');
+
+            if (isSpecialSkillMode) {
+                handleSpecialSkillExecution('enhancedAttack'); 
+            } else {
+                resetFlagsForPlayerTurn(); 
+                let damage = Math.floor(Math.random() * (35 - 15 + 1)) + 15;
+                let attackMessage = `Bạn tấn công Quái Vật, gây ra ${damage} sát thương!`;
+                if (monsterHasShield) {
+                    const initialMonsterShield = monsterShield; 
+                    monsterShield -= damage; 
+                    let healthDamageFromShield = 0;
+                    let overflowDamage = 0;
+                    let shieldMessage = '';
+                    if (monsterShield < 0) { 
+                        overflowDamage = Math.abs(monsterShield);
+                        monsterShield = 0;
+                        const damageAbsorbedByShield = initialMonsterShield; 
+                        const healthReductionMultiplier = Math.random() * (SHIELD_HEALTH_REDUCTION_MAX_MULTIPLIER - SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER) + SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER;
+                        healthDamageFromShield = Math.floor(damageAbsorbedByShield * healthReductionMultiplier);
+                        monsterHealth -= (overflowDamage + healthDamageFromShield);
+                        shieldMessage = ` Giáp của Quái Vật vỡ! Nó nhận thêm ${overflowDamage} sát thương trực tiếp và ${healthDamageFromShield} sát thương xuyên giáp.`;
+                    } else { 
+                        const healthReductionMultiplier = Math.random() * (SHIELD_HEALTH_REDUCTION_MAX_MULTIPLIER - SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER) + SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER;
+                        healthDamageFromShield = Math.floor(damage * healthReductionMultiplier);
+                        monsterHealth -= healthDamageFromShield;
+                        shieldMessage = ` Giáp của Quái Vật giảm ${damage} điểm. Nó nhận ${healthDamageFromShield} sát thương xuyên giáp.`;
+                    }
+                    logHistory(attackMessage + shieldMessage); 
+                } else {
+                    monsterHealth -= damage;
+                    logHistory(attackMessage);
+                }
+                const powerGainMultiplier = (Math.floor(Math.random() * (75 - 50 + 1)) + 50) / 100;
+                playerPower = Math.min(playerMaxPower, playerPower + Math.floor(damage * powerGainMultiplier)); 
+                updateUI();
+                if (checkGameEnd()) return;
+                if (gameActive) setTimeout(monsterTurn, 1000);
+            }
+        }
+
+        async function playerHeal() {
+            if (!gameActive || isTutorialActive) return; 
+            disableAllActionButtons();
+
+            const btnClone = healButton.cloneNode(true);
+            btnClone.classList.add('animation-clone');
+            const startRect = healButton.getBoundingClientRect();
+            const endRect = playerAvatar.getBoundingClientRect();
+            
+            btnClone.style.left = `${startRect.left}px`;
+            btnClone.style.top = `${startRect.top}px`;
+            document.body.appendChild(btnClone);
+            healButton.style.visibility = 'hidden';
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            btnClone.style.transform = `translate(${endRect.left - startRect.left}px, ${endRect.top - startRect.top}px) scale(1.2)`;
+            btnClone.style.opacity = '0';
+
+            await new Promise(resolve => setTimeout(resolve, 800));
+            document.body.removeChild(btnClone);
+            healButton.style.visibility = 'visible';
+            playerHealthBar.parentElement.classList.add('flash');
+
+            if (isSpecialSkillMode) {
+                handleSpecialSkillExecution('enhancedHeal');
+            } else {
+                resetFlagsForPlayerTurn(); 
+                playerUsedHeal = true; 
+                let healAmount = Math.floor(Math.random() * (25 - 10 + 1)) + 10;
+                let healMessage = `Bạn tự hồi phục ${healAmount} máu!`;
+                playerHealth = Math.min(playerMaxHealth, playerHealth + healAmount);
+                const powerGainMultiplier = (Math.floor(Math.random() * (75 - 50 + 1)) + 50) / 100;
+                playerPower = Math.min(playerMaxPower, playerPower + Math.floor(healAmount * powerGainMultiplier)); 
+                logHistory(healMessage);
+                updateUI();
+                await new Promise(resolve => setTimeout(resolve, 300));
+                playerHealthBar.parentElement.classList.remove('flash');
+                if (checkGameEnd()) return;
+                if (gameActive) setTimeout(monsterTurn, 1000);
+            }
+        }
+
+        function playerDefend() {
+            if (!gameActive || isTutorialActive) return; 
+            disableAllActionButtons();
+            if (isSpecialSkillMode) {
+                handleSpecialSkillExecution('enhancedDefense');
+            } else {
+                resetFlagsForPlayerTurn(); 
+                isDefending = true;
+                let defendMessage = '';
+                const defendRoll = Math.random();
+                if (defendRoll < PERFECT_DEFEND_CHANCE) { 
+                    isPerfectDefending = true;
+                    defendMessage = 'Bạn phòng thủ hoàn hảo, đòn tấn công tiếp theo sẽ bị vô hiệu hóa!';
+                } 
+                else if (defendRoll < PERFECT_DEFEND_CHANCE + DEFENSE_BREAK_CHANCE) { 
+                    isDefenseBroken = true;
+                    defendMessage = 'Phòng thủ của bạn bị phá vỡ! Bạn sẽ nhận thêm sát thương!';
+                } 
+                else if (defendRoll < PERFECT_DEFEND_CHANCE + DEFENSE_BREAK_CHANCE + COUNTER_DEFEND_CHANCE) { 
+                    isCountering = true;
+                    defendMessage = 'Bạn vào tư thế phòng thủ, sẵn sàng phản đòn!';
+                } 
+                else { 
+                    defendMessage = 'Bạn vào tư thế phòng thủ! Sát thương nhận vào sẽ giảm.';
+                }
+                logHistory(defendMessage);
+                updateUI();
+                if (checkGameEnd()) return;
+                if (gameActive) setTimeout(monsterTurn, 1000);
+            }
+        }
+
+        function playerFlee() {
+            if (!gameActive || isTutorialActive) return; 
+            disableAllActionButtons();
+            if (isSpecialSkillMode) {
+                handleSpecialSkillExecution('rob');
+            } else {
+                resetFlagsForPlayerTurn(); 
+                const fleeRoll = Math.random(); 
+                if (fleeRoll < FLEE_SUCCESS_CHANCE) {
+                    logHistory('Bạn đã bỏ chạy thành công! Trò chơi kết thúc.');
+                    endGame(false);
+                } else if (fleeRoll < FLEE_SUCCESS_CHANCE + FLEE_FAIL_DEATH_CHANCE) {
+                    logHistory('Bạn không thể bỏ chạy và bị Quái Vật kết liễu! Trò chơi kết thúc.');
+                    playerHealth = 0; 
+                    updateUI();
+                    endGame(true);
+                } else {
+                    bleedingTurns = 5; 
+                    bleedingDamagePerTurn = Math.floor(Math.random() * 5) + 1; 
+                    isFailedFleeAttack = true; 
+                    logHistory(`Bạn không thể bỏ chạy! Quái Vật chặn đường và trận chiến tiếp tục.`); 
+                    updateUI();
+                    if (checkGameEnd()) return;
+                    if (gameActive) setTimeout(monsterTurn, 1000);
+                }
+            }
+        }
+
+        function handleSpecialSkillExecution(skillType) {
+            enhancedHealActivated = false; 
+            enhancedAttackActivated = false; 
+            playerPower -= 50;
+            let skillMessage = '';
+            if (skillType === 'enhancedAttack') {
+                enhancedAttackActivated = true;
+                const bonusDamage = Math.floor(Math.random() * (ENHANCED_ATTACK_BASE_DAMAGE * (ENHANCED_ATTACK_BONUS_DAMAGE_MAX_PERCENT - ENHANCED_ATTACK_BONUS_DAMAGE_MIN_PERCENT + 0.001)) + (ENHANCED_ATTACK_BASE_DAMAGE * ENHANCED_ATTACK_BONUS_DAMAGE_MIN_PERCENT));
+                let damageDealt = ENHANCED_ATTACK_BASE_DAMAGE + bonusDamage;
+                if (monsterHasShield) {
+                    const initialMonsterShield = monsterShield; 
+                    monsterShield -= damageDealt; 
+                    let healthDamageFromShield = 0;
+                    let overflowDamage = 0;
+                    let shieldMessage = '';
+                    if (monsterShield < 0) { 
+                        overflowDamage = Math.abs(monsterShield);
+                        monsterShield = 0;
+                        const damageAbsorbedByShield = initialMonsterShield; 
+                        const healthReductionMultiplier = Math.random() * (SHIELD_HEALTH_REDUCTION_MAX_MULTIPLIER - SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER) + SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER;
+                        healthDamageFromShield = Math.floor(damageAbsorbedByShield * healthReductionMultiplier);
+                        monsterHealth -= (overflowDamage + healthDamageFromShield);
+                        shieldMessage = ` Giáp của Quái Vật vỡ! Nó nhận thêm ${overflowDamage} sát thương trực tiếp và ${healthDamageFromShield} sát thương xuyên giáp.`;
+                    } else { 
+                        const healthReductionMultiplier = Math.random() * (SHIELD_HEALTH_REDUCTION_MAX_MULTIPLIER - SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER) + SHIELD_HEALTH_REDUCTION_MIN_MULTIPLIER;
+                        healthDamageFromShield = Math.floor(damageDealt * healthReductionMultiplier);
+                        monsterHealth -= healthDamageFromShield;
+                        shieldMessage = ` Giáp của Quái Vật giảm ${damageDealt} điểm. Nó nhận ${healthDamageFromShield} sát thương xuyên giáp.`;
+                    }
+                    skillMessage = `Bạn kích hoạt Tấn Công Đặc Biệt, gây ra ${damageDealt} sát thương!${shieldMessage}`; 
+                } else {
+                    monsterHealth -= damageDealt;
+                    skillMessage = `Bạn kích hoạt Tấn Công Đặc Biệt, gây ra ${damageDealt} sát thương!`;
+                }
+                monsterHealth -= ENHANCED_ATTACK_FIXED_COUNTER_DAMAGE;
+                skillMessage += ` Gây lại ${ENHANCED_ATTACK_FIXED_COUNTER_DAMAGE} sát thương cho Quái Vật!`;
+                monsterBleedingTurns = ENHANCED_ATTACK_BLEED_TURNS;
+                monsterBleedingDamagePerTurn = Math.floor(Math.random() * (ENHANCED_ATTACK_BLEED_DAMAGE_MAX - ENHANCED_ATTACK_BLEED_DAMAGE_MIN + 1)) + ENHANCED_ATTACK_BLEED_DAMAGE_MIN;
+                skillMessage += ` Quái Vật bị **Chảy Máu**!`; 
+            } else if (skillType === 'enhancedHeal') {
+                enhancedHealActivated = true;
+                let healAmount = Math.floor(Math.random() * (ENHANCED_HEAL_AMOUNT_MAX - ENHANCED_HEAL_AMOUNT_MIN + 1)) + ENHANCED_HEAL_AMOUNT_MIN;
+                playerHealth = Math.min(playerMaxHealth, playerHealth + healAmount);
+                regenHealTurns = REGEN_HEAL_DURATION;
+                skillMessage = `Bạn kích hoạt Hồi Máu Đặc Biệt, hồi phục ${healAmount} máu, nhận giảm 20% sát thương và hồi 20 máu mỗi lượt trong 3 lượt!`;
+            } else if (skillType === 'enhancedDefense') { 
+                playerHealth -= 20;
+                perfectDefenseTurns = 3;
+                if (cursedTurns === 0) { 
+                    cursedTurns = CURSE_DURATION;
+                    currentCurseDamage = CURSE_INITIAL_DAMAGE;
+                    skillMessage = 'Bạn kích hoạt Phòng Thủ Đặc Biệt! Mất 20 máu, được bảo vệ hoàn toàn trong 3 lượt và nguyền rủa Quái Vật!';
+                } else { 
+                    cursedTurns += CURSE_DURATION;
+                    skillMessage = `Bạn kích hoạt Phòng Thủ Đặc Biệt! Mất 20 máu, được bảo vệ hoàn toàn trong 3 lượt và gia hạn lời nguyền lên Quái Vật!`;
+                }
+            } else if (skillType === 'rob') { 
+                const goldGained = Math.floor(Math.random() * (ROB_GOLD_MAX - ROB_GOLD_MIN + 1)) + ROB_GOLD_MIN;
+                gold += goldGained;
+                logHistory(`Bạn đã cướp được ${goldGained} vàng!`);
+                resetButtonsToNormal();
+                updateUI();
+                setTimeout(showShop, 500); 
+                return;
+            }
+            logHistory(skillMessage);
+            resetButtonsToNormal();
+            updateUI();
+            if (checkGameEnd()) return;
+            if (gameActive) {
+                setTimeout(monsterTurn, 1000);
+            }
+        }
+
+        async function executeMonsterAttackLogic() {
+            if (!gameActive) { 
+                enableAllActionButtons(); 
+                return;
+            }
+            let turnMessages = []; 
+
+            if (regenHealTurns > 0) {
+                const actualHeal = Math.min(REGEN_HEAL_AMOUNT, playerMaxHealth - playerHealth);
+                if (actualHeal > 0) {
+                    playerHealth += actualHeal;
+                    turnMessages.push(`Bạn được hồi ${actualHeal} máu từ hiệu ứng tiếp ứng. (${regenHealTurns - 1} lượt còn lại).`);
+                }
+                regenHealTurns--;
+            }
+
+            if (monsterBleedingTurns > 0) {
+                let actualBleedDamage = monsterBleedingDamagePerTurn;
+                let bleedMessage = `Quái Vật mất ${actualBleedDamage} máu do **Chảy Máu**!`;
+                if (monsterHasShield) {
+                    const rustBonus = Math.floor(Math.random() * (RUST_BLEED_BONUS_MAX - RUST_BLEED_BONUS_MIN + 1)) + RUST_BLEED_BONUS_MIN; 
+                    actualBleedDamage += rustBonus;
+                    bleedMessage = `Quái Vật mất ${actualBleedDamage} máu do **Chảy Máu** (do gỉ sét)!`; 
+                }
+                monsterHealth -= actualBleedDamage; 
+                turnMessages.push(`${bleedMessage} (${monsterBleedingTurns - 1} lượt còn lại).`);
+                monsterBleedingTurns--;
+                if (checkGameEnd()) return;
+            }
+            if (cursedTurns > 0) {
+                monsterHealth -= currentCurseDamage; 
+                turnMessages.push(`Quái Vật mất ${currentCurseDamage} máu do **Lời Nguyền**! (${cursedTurns - 1} lượt còn lại).`);
+                cursedTurns--; 
+                if (cursedTurns > 0) { 
+                    currentCurseDamage += CURSE_DAMAGE_INCREMENT;
+                } else { 
+                    currentCurseDamage = 0; 
+                }
+                if (checkGameEnd()) return;
+            } else { 
+                currentCurseDamage = 0; 
+            }
+            if (bleedingTurns > 0) {
+                playerHealth -= bleedingDamagePerTurn;
+                turnMessages.push(`Bạn mất ${bleedingDamagePerTurn} máu do chảy máu. (${bleedingTurns - 1} lượt còn lại).`);
+                bleedingTurns--;
+                if (checkGameEnd()) return;
+            }
+            let monsterAttacksThisTurn = true; 
+            let currentMonsterDamage = 0; 
+            if (isFailedFleeAttack) {
+                currentMonsterDamage = 15; 
+            } else if (playerUsedHeal && Math.random() < MONSTER_MISS_CHANCE_ON_HEAL) {
+                monsterAttacksThisTurn = false; 
+                turnMessages.push('Quái Vật do dự và bỏ lỡ lượt của nó!');
+            } else { 
+                currentMonsterDamage = Math.floor(Math.random() * (50 - 15 + 1)) + 15;
+            }
+            if (monsterAttacksThisTurn) {
+                let finalDamageToPlayer = currentMonsterDamage;
+                let monsterAttackMessage = '';
+                if (isFailedFleeAttack) {
+                    finalDamageToPlayer = 15; 
+                    monsterAttackMessage = `Quái Vật túm lấy bạn khi bạn cố gắng bỏ chạy, gây ra ${finalDamageToPlayer} sát thương!`;
+                } else if (perfectDefenseTurns > 0) {
+                    finalDamageToPlayer = 0;
+                    monsterAttackMessage = 'Bạn được bảo vệ hoàn toàn bởi **Phòng Thủ Đặc Biệt**!'; 
+                    perfectDefenseTurns--; 
+                } else if (isPerfectDefending) { 
+                    finalDamageToPlayer = 0;
+                    monsterAttackMessage = 'Quái Vật tấn công bạn, nhưng bạn đã **Phòng Thủ Hoàn Hảo** và không nhận sát thương!';
+                } else if (isDefenseBroken) {
+                    finalDamageToPlayer = currentMonsterDamage + Math.floor(currentMonsterDamage * DEFENSE_BREAK_EXTRA_DAMAGE_MULTIPLIER);
+                    monsterAttackMessage = `Phòng thủ của bạn bị phá vỡ! Quái Vật tấn công và bạn nhận ${finalDamageToPlayer} sát thương!`;
+                } else if (isCountering) {
+                    finalDamageToPlayer = Math.floor(currentMonsterDamage * 0.5); 
+                    monsterAttackMessage = `Quái Vật tấn công bạn, nhưng bạn phòng thủ tốt, chỉ nhận ${finalDamageToPlayer} sát thương!`;
+                } else if (isDefending) { 
+                    const reductionPercentage = Math.floor(Math.random() * (60 - 30 + 1)) + 30; 
+                    const damageMultiplier = (100 - reductionPercentage) / 100; 
+                    finalDamageToPlayer = Math.floor(currentMonsterDamage * damageMultiplier);
+                    monsterAttackMessage = `Quái Vật tấn công bạn, nhưng bạn phòng thủ tốt, chỉ nhận ${finalDamageToPlayer} sát thương (${reductionPercentage}% giảm)!`;
+                } else if (enhancedHealActivated) {
+                    const reductionPercentage = 20;
+                    finalDamageToPlayer = Math.floor(currentMonsterDamage * (1 - (reductionPercentage / 100)));
+                    monsterAttackMessage = `Quái Vật tấn công, nhưng bạn nhận giảm ${reductionPercentage}% sát thương, chỉ nhận ${finalDamageToPlayer} sát thương!`;
+                } else if (enhancedAttackActivated) { 
+                    finalDamageToPlayer = Math.floor(currentMonsterDamage * (1 - ENHANCED_ATTACK_DEFENSE_REDUCTION));
+                    monsterAttackMessage = `Quái Vật tấn công bạn, nhưng bạn đã giảm ${ENHANCED_ATTACK_DEFENSE_REDUCTION * 100}% sát thương nhờ **Tấn Công Đặc Biệt**, chỉ nhận ${finalDamageToPlayer} sát thương!`;
+                } else { 
+                    monsterAttackMessage = `Quái Vật tấn công bạn, gây ra ${finalDamageToPlayer} sát thương!`;
+                }
+                playerHealth -= finalDamageToPlayer;
+                turnMessages.push(monsterAttackMessage);
+                let powerGainFromThisTurn = 0;
+                if (isDefending || enhancedHealActivated || enhancedAttackActivated || (perfectDefenseTurns > 0 && finalDamageToPlayer === 0) || isPerfectDefending) { 
+                    const powerGainMultiplier = (Math.floor(Math.random() * (75 - 50 + 1)) + 50) / 100;
+                    powerGainFromThisTurn += Math.floor(currentMonsterDamage * powerGainMultiplier);
+                }
+                playerPower = Math.min(playerMaxPower, playerPower + powerGainFromThisTurn);
+                if (isCountering && !isFailedFleeAttack) { 
+                    const reflectedDamage = Math.floor(currentMonsterDamage * COUNTER_DAMAGE_MULTIPLIER);
+                    monsterHealth -= reflectedDamage;
+                    turnMessages.push(` Bạn đã phản đòn, gây ${reflectedDamage} sát thương cho Quái Vật!`); 
+                }
+            }
+            logHistory(turnMessages.join(' ')); 
+            resetFlagsForPlayerTurn(); 
+            enhancedAttackActivated = false;
+            enhancedHealActivated = false;
+            updateUI();
+            checkGameEnd();
+            if(gameActive) enableAllActionButtons();
+        }
+
+        function monsterTurn() { 
+            if (!gameActive) return; 
+            executeMonsterAttackLogic();
+        }
+
+        function showShop() {
+            shopModalOverlay.style.display = 'flex';
+            updateShopUI();
+            checkTutorialTriggers();
+        }
+
+        function hideShop() {
+            shopModalOverlay.style.display = 'none';
+            enableAllActionButtons();
+            setTimeout(monsterTurn, 500);
+        }
+
+        function showHistory() {
+            historyLogList.innerHTML = '';
+            [...gameHistory].reverse().forEach(msg => {
+                const li = document.createElement('li');
+                li.textContent = msg;
+                historyLogList.appendChild(li);
+            });
+            historyModalOverlay.style.display = 'flex';
+        }
+
+        function hideHistory() {
+            historyModalOverlay.style.display = 'none';
+        }
+
+        function showRules() {
+            rulesModalOverlay.style.display = 'flex';
+        }
+
+        function hideRules() {
+            rulesModalOverlay.style.display = 'none';
+        }
+
+        function updateShopUI() {
+            currentGoldText.textContent = gold;
+            shopMessage.textContent = '';
+            buyHealthButton.disabled = gold < 100 || playerMaxHealth >= MAX_PLAYER_HEALTH;
+            buyPowerButton.disabled = gold < 200 || playerMaxPower >= MAX_PLAYER_POWER;
+        }
+
+        function buyItem(itemType) {
+            shopMessage.textContent = '';
+            if (itemType === 'health') {
+                if (playerMaxHealth >= MAX_PLAYER_HEALTH) {
+                    shopMessage.textContent = 'Đã đạt giới hạn máu tối đa!';
+                } else if (gold >= 100) {
+                    gold -= 100;
+                    playerMaxHealth += 25;
+                    playerHealth = Math.min(playerMaxHealth, playerHealth + 25);
+                    shopMessage.textContent = 'Đã mua +25 Máu Tối Đa!';
+                } else {
+                    shopMessage.textContent = 'Không đủ vàng!';
+                }
+            } else if (itemType === 'power') {
+                if (playerMaxPower >= MAX_PLAYER_POWER) {
+                    shopMessage.textContent = 'Đã đạt giới hạn năng lượng tối đa!';
+                } else if (gold >= 200) {
+                    gold -= 200;
+                    playerMaxPower += 25;
+                    playerPower = Math.min(playerMaxPower, playerPower + 25);
+                    shopMessage.textContent = 'Đã mua +25 Năng Lượng Tối Đa!';
+                } else {
+                    shopMessage.textContent = 'Không đủ vàng!';
+                }
+            }
+            updateUI();
+            updateShopUI();
+        }
+
+        function checkGameEnd() {
+            if (playerHealth <= 0) {
+                playerHealth = 0;
+                logHistory(`Bạn đã bị đánh bại! Trò chơi kết thúc. Điểm của bạn: ${score}`);
+                endGame(true);
+                return true;
+            } else if (monsterHealth <= 0 && !isMonsterDefeated) {
+                isMonsterDefeated = true;
+                monsterHealth = 0;
+                let pointsGained = 0;
+                if (currentMonsterType === 'normal') {
+                    pointsGained = 50;
+                } else if (currentMonsterType === 'armored') {
+                    pointsGained = 100;
+                }
+                score += pointsGained;
+                currentRound++;
+                logHistory(`Bạn đã đánh bại Quái Vật! Bạn nhận được ${pointsGained} điểm! Tổng điểm: ${score}.`);
+                disableAllActionButtons();
+                setTimeout(() => {
+                    spawnMonster(); 
+                    enableAllActionButtons();
+                }, 1500);
+                return true;
+            }
+            return false;
+        }
+
+        function endGame(playerLost) {
+            gameActive = false;
+            disableAllActionButtons();
+            restartButton.style.display = 'block'; 
+            restartButton.disabled = false;
+            if (playerLost) {
+                hasPlayerDiedBefore = true;
+            }
+        }
+
+        attackButton.addEventListener('click', playerAttack);
+        healButton.addEventListener('click', playerHeal);
+        defendButton.addEventListener('click', playerDefend);
+        fleeButton.addEventListener('click', playerFlee);
+        restartButton.addEventListener('click', initializeGame);
+        activateSpecialSkillButton.addEventListener('click', setButtonsToSpecialMode);
+        buyHealthButton.addEventListener('click', () => buyItem('health'));
+        buyPowerButton.addEventListener('click', () => buyItem('power'));
+        exitShopButton.addEventListener('click', hideShop);
+        historyButton.addEventListener('click', showHistory);
+        closeHistoryButton.addEventListener('click', hideHistory);
+        rulesButton.addEventListener('click', showRules);
+        closeRulesButton.addEventListener('click', hideRules);
+        tutorialNextButton.addEventListener('click', () => showNextTutorialStep());
+        tutorialSkipButton.addEventListener('click', skipTutorials);
+        window.addEventListener('scroll', positionTutorialForStep);
+        window.addEventListener('resize', positionTutorialForStep);
+        
+        // Hàm tái sử dụng để áp dụng hiệu ứng
+        function applyBubbleEffect(button, effectClass) {
+    if (button.classList.contains('special-mode') || button.disabled) return;
+
+    button.classList.remove(effectClass, 'bubble-effect-base');
+
+    setTimeout(() => {
+        button.classList.add(effectClass, 'bubble-effect-base');
+
+        const onAnimationEnd = () => {
+            button.classList.remove(effectClass, 'bubble-effect-base');
+            button.removeEventListener('animationend', onAnimationEnd);
+        };
+        // Lắng nghe sự kiện animation kết thúc cho CẢ ::before và ::after
+        // để đảm bảo class được xóa đúng lúc.
+        button.addEventListener('animationend', onAnimationEnd);
+
+    }, 0);
+}
+
+        // Gán sự kiện cho từng nút với class hiệu ứng tương ứng
+        attackButton.addEventListener('mouseenter', () => applyBubbleEffect(attackButton, 'bubble-effect-attack'));
+        healButton.addEventListener('mouseenter', () => applyBubbleEffect(healButton, 'bubble-effect-heal'));
+        defendButton.addEventListener('mouseenter', () => applyBubbleEffect(defendButton, 'bubble-effect-defend'));
+        fleeButton.addEventListener('mouseenter', () => applyBubbleEffect(fleeButton, 'bubble-effect-flee'));
+
+
+        window.onload = () => {
+            mainWrapper.style.display = 'none';
+            welcomeHero.src = heroImage;
+            welcomeOverlay.style.display = 'flex';
+
+            setTimeout(() => {
+                welcomeOverlay.style.display = 'none';
+                mainWrapper.style.display = 'flex';
+                initializeGame();
+            }, 2500);
+        };
+    </script>
+</body>
+</html>
