@@ -640,22 +640,32 @@
 }
 
         /* --- 3. Hiệu ứng cho nút PHÒNG THỦ (Màu Nâu Vàng) --- */
-        .bubble-effect-defend::before {
-            top: -70%;
-            left: 65%;
-            background-image: radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 10%, #ca8a04 15%, transparent 20%), radial-gradient(circle, #ca8a04 10%, transparent 20%), radial-gradient(circle, #ca8a04 15%, transparent 25%), radial-gradient(circle, transparent 15%, #ca8a04 20%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 15%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 22%), radial-gradient(circle, #ca8a04 10%, transparent 10%);
-            background-size: 10% 10%, 20% 20%, 15% 20%, 15% 15%, 25% 25%, 10% 15%, 20% 25%, 18% 18%, 15% 15%, 20% 20%;
-            background-position: 8% 90%, 10% 90%, 10% 90%, 20% 80%, 45% 80%, 25% 90%, 30% 80%, 40% 90%, 35% 85%, 50% 90%;
-            animation: topbubbles 2s linear forwards;
-        }
-        .bubble-effect-defend::after {
-            bottom: -70%;
-            left: 65%;
-            background-image: radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 20%), radial-gradient(circle, transparent 10%, #ca8a04 15%, transparent 20%), radial-gradient(circle, #ca8a04 10%, transparent 20%), radial-gradient(circle, #ca8a04 15%, transparent 25%), radial-gradient(circle, transparent 15%, #ca8a04 20%, transparent 25%), radial-gradient(circle, #ca8a04 20%, transparent 15%), radial-gradient(circle, transparent 15%, #ca8a04 15%, transparent 22%), radial-gradient(circle, #ca8a04 10%, transparent 10%);
-            background-size: 10% 10%, 20% 20%, 15% 20%, 15% 15%, 25% 25%, 10% 15%, 20% 25%, 18% 18%, 15% 15%, 20% 20%;
-            background-position: 90% 0%, 30% 10%, 45% 15%, 50% 5%, 65% 0%, 70% 0%, 75% 0%, 85% 10%, 80% 15%, 60% 10%;
-            animation: bottombubbles 2s linear forwards;
-        }
+        /* --- 3. Hiệu ứng cho nút PHÒNG THỦ (Khiên Năng Lượng) --- */
+.bubble-effect-defend::before {
+    content: '';
+    position: absolute;
+    /* Căn giữa chiếc khiên với nút bấm */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* Làm cho nó to hơn nút một chút */
+    width: 110%;
+    height: 125%;
+    
+    /* Tạo hình dáng chiếc khiên bằng viền và bóng mờ */
+    border: 3px solid #ca8a04; /* Viền màu nâu vàng đậm */
+    border-radius: 18px; /* Bo góc giống nút */
+    box-shadow: 0 0 15px #ca8a04, inset 0 0 10px #fde047; /* Vầng sáng bên ngoài và bên trong */
+    
+    /* Áp dụng animation nổ bung, thời gian 1 giây */
+    animation: shield-up 1s ease-out forwards;
+}
+
+/* Ẩn đi pseudo-element ::after vì chúng ta không cần nó nữa */
+.bubble-effect-defend::after {
+    display: none;
+}
 
         /* --- 4. Hiệu ứng cho nút BỎ CHẠY (Màu Trắng Xanh Biển) --- */
         .bubble-effect-flee::before {
@@ -710,6 +720,25 @@
         opacity: 0;
     }
 }
+
+@keyframes shield-up {
+    0% {
+        /* Bắt đầu: Kích thước nhỏ, ẩn */
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0;
+    }
+    40% {
+        /* Giữa: Nở rộng, hiện rõ nhất */
+        transform: translate(-50%, -50%) scale(1.15);
+        opacity: 0.6; /* Độ mờ vừa phải */
+    }
+    100% {
+        /* Kết thúc: Hơi nở rộng thêm và biến mất hoàn toàn */
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -2011,6 +2040,7 @@
                 initializeGame();
             }, 2500);
         };
+        
     </script>
 </body>
 </html>
